@@ -1,6 +1,10 @@
 package com.example.arcueid.cameratest;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -13,9 +17,16 @@ import java.util.List;
 /**
  * Created by arcueid on 16/05/05.
  */
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback{
 
     private Camera mCam;
+
+    private byte[] mFrameBuffer;
+    private int[] mBitmapBuffer;
+
+    private SurfaceHolder mHolder;
+
+    private Bitmap mBitmap;
 
     /**
      * コンストラクタ
@@ -26,29 +37,31 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCam = cam;
 
         // サーフェスホルダーの取得とコールバック通知先の設定
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        mHolder = getHolder();
+        mHolder.addCallback(this);
+        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
     /**
      * SurfaceView 生成
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        try {
+//        try {
             // カメラインスタンスに、画像表示先を設定
-            mCam.setPreviewDisplay(holder);
+            //mCam.setPreviewDisplay(holder);
+            mCam.setPreviewCallbackWithBuffer(this);
             // プレビュー開始
             //mCam.startPreview();
-        } catch (IOException e) {
+//        } catch (IOException e) {
             //
-        }
+//        }
     }
 
     /**
      * SurfaceView 破棄
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
+        mCam.setPreviewCallback(null);
     }
 
     /**
@@ -71,8 +84,26 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 //        setLayoutParams(paramLayout);
 
         parameters.setPreviewSize(optimalSize.width, optimalSize.height);
+
+        //色空間
+        parameters.setPreviewFormat(ImageFormat.NV21);
         mCam.setParameters(parameters);
+
+        int bufferSize = optimalSize.width * optimalSize.height * ImageFormat.getBitsPerPixel(parameters.getPreviewFormat())/8;
+
+        //プレビュー画像バッファ
+        mFrameBuffer = new byte[bufferSize];
+        //ビットマップ作成バッファ(int型で１ピクセルを表すので*4は不要)
+        mBitmapBuffer = new int[optimalSize.width * optimalSize.height];
+
+        //バッファ変更
+        mCam.addCallbackBuffer(mFrameBuffer);
+
+        //ビットマップの作成
+        mBitmap = Bitmap.createBitmap(optimalSize.width, optimalSize.height, Bitmap.Config.ARGB_8888);
+
         mCam.startPreview();
+
     }
 
     //アスペクト比を保持した最適なサイズを返す(これ以外のサイズで表示しようとすると画像が崩れる）
@@ -108,4 +139,29 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }
         return optimalSize;
     }
+
+    public void onPreviewFrame(byte[] data, Camera camera)
+    {
+        mCam.addCallbackBuffer(mFrameBuffer);
+
+        Camera.Parameters parameters = mCam.getParameters();
+        Camera.Size size = parameters.getPreviewSize();
+
+        //試しにグレースケール
+        for( int i = 0; i < mBitmapBuffer.length; i++)
+        {
+            int gray = data[i] & 0xff;
+            mBitmapBuffer[i] = 0xff000000 | gray << 16 | gray << 8 | gray;
+        }
+
+        mBitmap.setPixels( mBitmapBuffer, 0, size.width, 0, 0, size.width, size.height);
+
+        Rect srcRect = new Rect(0, 0, size.width, size.height);
+        Canvas canvas = mHolder.lockCanvas();
+        Rect dstRect = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+//        canvas.drawBitmap(mBitmap, 0, 0, null);
+        canvas.drawBitmap( mBitmap, srcRect, dstRect, null);
+        mHolder.unlockCanvasAndPost(canvas);
+    }
+
 }
