@@ -7,17 +7,21 @@ import android.hardware.Camera;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import java.io.ByteArrayOutputStream;
 
 public class MainActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener{
 
     //カメラインスタンス
-    private Camera2 mCamera = null;
+    private Camera mCamera = null;
 
     private CameraPreview mCameraPreview = null;
 
@@ -29,20 +33,20 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTextureView = (TextureView) findViewById(R.id.texture_view);
-        mTextureView.setSurfaceTextureListener(this);
-
-        mCamera = new Camera2(MainActivity.this,mTextureView);
-//        //カメラインスタンスの取得
-//        try {
-//            mCamera = Camera.open();
-//        }catch(Exception e){
-//            this.finish();
-//        }
+//        mTextureView = (TextureView) findViewById(R.id.texture_view);
+//        mTextureView.setSurfaceTextureListener(this);
 //
-//        FrameLayout preview = (FrameLayout)findViewById(R.id.CameraPreview);
-//        mCameraPreview = new CameraPreview(this, mCamera);
-//        preview.addView( preview );
+//        mCamera = new Camera2(MainActivity.this,mTextureView);
+        //カメラインスタンスの取得
+        try {
+            mCamera = Camera.open();
+        }catch(Exception e){
+            this.finish();
+        }
+
+        FrameLayout preview = (FrameLayout)findViewById(R.id.CameraPreview);
+        mCameraPreview = new CameraPreview(this, mCamera);
+        preview.addView( mCameraPreview, new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
 
 //        Button cameraButton = (Button)findViewById(R.id.CameraButton);
 //

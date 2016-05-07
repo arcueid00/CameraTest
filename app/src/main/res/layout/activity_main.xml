@@ -10,18 +10,18 @@
     tools:context="com.example.arcueid.cameratest.MainActivity">
 
 
-    <Button
-        android:id="@+id/CameraButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="カメラを起動"/>
-    <TextureView
-        android:id="@+id/texture_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    <!--<FrameLayout-->
+    <!--<Button-->
+        <!--android:id="@+id/CameraButton"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="wrap_content"-->
-        <!--android:id="@+id/CameraPreview"/>-->
+        <!--android:text="カメラを起動"/>-->
+    <!--<TextureView-->
+        <!--android:id="@+id/texture_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" />-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/CameraPreview"/>
 
 </RelativeLayout>
